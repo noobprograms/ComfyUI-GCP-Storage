@@ -53,8 +53,8 @@ class upload_to_gcp_storage:
             uploaded_urls.append(public_url)
 
         return {
-            "ui": {"images": results},
-            "uploaded_urls": uploaded_urls
+            "ui": {"images": results,"uploaded_urls": uploaded_urls},
+            
         }
 
     def save_images(self, images, filename_prefix):
