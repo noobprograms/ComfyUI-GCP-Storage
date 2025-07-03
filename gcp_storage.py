@@ -65,11 +65,27 @@ class upload_to_gcp_storage:
 
         for i, image in enumerate(images):
             i_data = 255. * image.cpu().numpy()
-            img = Image.fromarray(np.clip(i_data, 0, 255).astype(np.uint8))
-            # add padding to the filename because the images may be result of a single batch and have the same timestamp
-            image_filename = f"{filename}_{i:03}.png"
+            np_image = np.clip(i_data, 0, 255).astype(np.uint8)
+
+            # Detect number of channels to determine format
+            if np_image.shape[2] == 4:
+                # Has alpha → save as PNG
+                img_format = "PNG"
+                ext = ".png"
+                img = Image.fromarray(np_image, mode="RGBA")
+            else:
+                # No alpha → save as JPEG
+                img_format = "JPEG"
+                ext = ".jpg"
+                img = Image.fromarray(np_image, mode="RGB")
+
+            image_filename = f"{filename}_{i:03}{ext}"
             full_path = os.path.join(full_output_folder, image_filename)
-            img.save(full_path, compress_level=self.compress_level)
+
+            if img_format == "JPEG":
+                img.save(full_path, format="JPEG", quality=90)
+            else:
+                img.save(full_path, format="PNG", compress_level=self.compress_level)
 
             results.append({
                 "filename": image_filename,
